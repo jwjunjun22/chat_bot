@@ -1,72 +1,166 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>카카오톡 챗봇 서버</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f5f5f7;
-            color: #1d1d1f;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .card {
-            background: #ffffff;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        }
-        .status-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 12px;
-            color: #111111;
-        }
-        p {
-            font-size: 14px;
-            color: #6e6e73;
-            line-height: 1.5;
-            margin-bottom: 24px;
-        }
-        .badge {
-            display: inline-block;
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>부모님 자서전 인생 기록 작가</title>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; 
+    }
+    body { 
+      margin: 0; 
+      background-color: #b2c7da; 
+      display: flex; 
+      flex-direction: column; 
+      height: 100vh; 
+    }
+    
+    /* 상단 헤더 */
+    .header { 
+      background: #343b41; 
+      color: white; 
+      padding: 16px; 
+      text-align: center; 
+      font-weight: bold; 
+      font-size: 18px; 
+    }
+    
+    /* 채팅창 영역 */
+    .chat-container { 
+      flex: 1; 
+      padding: 16px; 
+      overflow-y: auto; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 12px; 
+    }
+    .message { 
+      max-width: 80%; 
+      padding: 12px 16px; 
+      border-radius: 14px; 
+      font-size: 16px; 
+      line-height: 1.5; 
+      word-break: break-word; 
+    }
+    .bot { 
+      background: white; 
+      align-self: flex-start; 
+      border-top-left-radius: 2px; 
+      color: #333; 
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+    }
+    .user { 
+      background: #ffeb33; 
+      align-self: flex-end; 
+      border-top-right-radius: 2px; 
+      color: #000; 
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+    }
+    
+    /* 하단 입력창 */
+    .input-area { 
+      display: flex; 
+      padding: 12px; 
+      background: white; 
+      gap: 8px; 
+      border-top: 1px solid #ddd; 
+    }
+    input { 
+      flex: 1; 
+      padding: 14px; 
+      border: 1px solid #ccc; 
+      border-radius: 24px; 
+      outline: none; 
+      font-size: 16px; 
+    }
+    button { 
+      padding: 0 20px; 
+      background: #ffeb33; 
+      border: none; 
+      border-radius: 24px; 
+      font-weight: bold; 
+      font-size: 15px; 
+      cursor: pointer; 
+    }
+    button:disabled { 
+      background: #eee; 
+      color: #999; 
+    }
+  </style>
 </head>
 <body>
-    <div class="card">
-        <div class="status-icon">🟢</div>
-        <h1>서버 정상 작동 중</h1>
-        <p>카카오톡 자서전 챗봇 백엔드 서비스가 정상적으로 연결되어 가동 중입니다.</p>
-        <span class="badge">Vercel Deployment Active</span>
-    </div>
 
-    <!-- 기존 백엔드 로직 코드 (참고용 주석) -->
-    <script>
-      /*
-      // ⚠️ [필수 설정] Gemini API 키
-      var GEMINI_API_KEY = "AQ.Ab8RN6KGfXj6ItwUW0pOMvIL3cO9MyiY-R87Q484FUBWnz1vCQ";
+  <div class="header">📖 부모님 자서전 인생 기록 작가</div>
+  
+  <div class="chat-container" id="chat">
+    <div class="message bot">안녕하세요 어머님, 아버님! 오늘 하루는 어떻게 보내셨나요? 소중한 추억을 들려주시면 예쁜 책으로 기록해 드릴게요.</div>
+  </div>
 
-      // 카카오톡 요청 응답 로직 (Google Apps Script / Node.js 연동용)
-      console.log("서버가 정상 구동 중입니다.");
-      */
-    </script>
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="이야기를 편하게 말씀해 주세요..." onkeypress="if(event.keyCode==13) sendMessage()">
+    <button id="sendBtn" onclick="sendMessage()">전송</button>
+  </div>
+
+  <script>
+    // 🔑 1. 아래 따옴표 안쪽에 발급받으신 Gemini API 키를 넣어주세요!
+    const GEMINI_API_KEY = "AQ.Ab8RN6JSdOvBJDH_0rY0ayqHAvZuRj-gjqaM9M_BYsE6cK2b5g";
+
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendMessage(text, 'user');
+      input.value = "";
+      
+      const btn = document.getElementById("sendBtn");
+      btn.disabled = true;
+
+      try {
+        // 인터뷰어 페르소나 설정
+        const systemInstruction = "당신은 부모님의 자서전을 집필하는 다정하고 예의 바른 '인생 기록 작가'입니다. " +
+                                  "어르신의 답변에 깊이 공감하고 따뜻한 리액션을 해준 뒤, 고향, 생년월일, 어린 시절 추억 등을 하나씩 자연스럽게 질문하세요. " +
+                                  "답변하기 편하도록 한 번에 딱 한 가지 질문만 던져야 합니다. 말투는 부드러운 해요체를 쓰세요.";
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+        const payload = {
+          contents: [{ parts: [{ text: text }] }],
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          generationConfig: { maxOutputTokens: 300, temperature: 0.6 }
+        };
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        let reply = "어머님, 아버님 소중한 말씀 감사해요. 다음 이야기도 조금 더 들려주실 수 있으실까요?";
+        if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+          reply = data.candidates[0].content.parts[0].text;
+        }
+
+        appendMessage(reply, 'bot');
+      } catch (err) {
+        appendMessage("잠시 통신이 원활하지 않아요. 다시 한 번 말씀해 주세요!", 'bot');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function appendMessage(text, side) {
+      const chat = document.getElementById("chat");
+      const msg = document.createElement("div");
+      msg.className = "message " + side;
+      msg.innerText = text;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
 </body>
 </html>
